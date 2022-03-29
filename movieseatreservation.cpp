@@ -8,17 +8,40 @@
 #include <unistd.h>
 using namespace std;
 
-//global variables
-int rows=10;    
-int seatsEachRow=20;                                                // number of seats in each row
-int totalSeats=rows*seatsEachRow;                                   //total available seata in theater
-vector<int> availableSeatsRow(10,20);                               //available seats in each row 
-vector<vector<string> > theatreSeats(10, vector<string>(20," "));   // theater layout
-vector<string> reserveID;                                           // to store reserve IDs
-map<string, vector<string> > reserved_seatsMap;                     // hashmap to store reservation ID and seats allocated
+
+class MovieReservation {
+
+private:
+    int rows;    
+    int seatsEachRow;                                                   // number of seats in each row
+    int totalSeats;                                                     //total available seata in theater
+    vector<int> availableSeatsRow;                                      //available seats in each row 
+    vector<vector<string> > theatreSeats;                               // theater layout
+public:                               
+    vector<string> reserveID;                                           // to store reserve IDs
+    map<string, vector<string> > reserved_seatsMap;                     // hashmap to store reservation ID and seats allocated
+
+  MovieReservation(){
+    seatsEachRow=20;
+    rows=10;
+    totalSeats=rows*seatsEachRow;
+    vector<int> temp(10,20);
+    availableSeatsRow = temp;
+    vector<vector<string> > theatreSeats_temp(10, vector<string>(20," "));
+    theatreSeats =  theatreSeats_temp;
+  }
+  public: 
+   int seatReservation(string reservation);
+
+  private:
+  int seatAllocation(string reserve_id, int seats_request);
+  vector<string> tokenize(string reservation, char delimiter);
+
+};
+
 
 //tokenizer - tokenize the reservation ID and number of seat requested
-vector<string> tokenize(string reservation, char delimiter){
+vector<string> MovieReservation::tokenize(string reservation, char delimiter){
     stringstream ss(reservation);
     string s;
     vector<string> tokens;
@@ -29,7 +52,7 @@ vector<string> tokenize(string reservation, char delimiter){
 }
 
 //allocate seats 
-int seatAllocation(string reserve_id, int seats_request){
+int MovieReservation::seatAllocation(string reserve_id, int seats_request){
 
     int row_counter=1;
     bool upflag=true;
@@ -116,7 +139,8 @@ int seatAllocation(string reserve_id, int seats_request){
     }
 }
 
-int seatReservation(string reservation){
+//seats reservation
+int MovieReservation::seatReservation(string reservation){
     vector<string> reserve_tokens = tokenize(reservation, ' ');
     string reserve_id = reserve_tokens[0];
     int seats_request = stoi(reserve_tokens[1]);
@@ -163,8 +187,9 @@ int main(int argc, char** argv)
         }
     } else cout<<"unable to open file"<<endl;
     
+    MovieReservation move_reseravation;
     for(int i=0;i<inputString.size();i++){
-        int output = seatReservation(inputString[i]);
+        int output = move_reseravation.seatReservation(inputString[i]);
         if(output ==1)
             cout<< "Sorry no tickets for this show book for next show"<<endl;
         if(output ==-1)
@@ -180,16 +205,14 @@ int main(int argc, char** argv)
     string curr_directory(curr_directory_path);
     curr_directory +="/output.txt";
 
-    // cout<<(curr_directory)<<endl;
     // open output file and write the seat number for reservation from map
     ofstream outputfile (curr_directory);
-    map<string, vector<string> > ::iterator it = reserved_seatsMap.begin();
-    
+
     //write seats numbers to out put file
     if(outputfile.is_open()){
-        for(int i=0;i<reserveID.size();i++){
-            string reserve_id = reserveID[i];
-            vector<string> seats= reserved_seatsMap[reserveID[i]];
+        for(int i=0;i<move_reseravation.reserveID.size();i++){
+            string reserve_id = move_reseravation.reserveID[i];
+            vector<string> seats= move_reseravation.reserved_seatsMap[move_reseravation.reserveID[i]];
             string seats_string=reserve_id+" "+seats[0];
             for(int i=1; i<seats.size();i++){
                 seats_string = seats_string+","+seats[i];
